@@ -56,10 +56,10 @@
     "rimraf": "^2.5.4",
     "snazzy": "^6.0.0",
     "standard": "^10.0.3",
-    "react-native-vertical-view-pager": "^0.1.1",
     "updtr": "^2.0.0"
   },
   "dependencies": {
+    "react-native-vertical-view-pager": "^0.1.1",
     "prop-types": "^15.5.10"
   }
 }
