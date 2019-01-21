@@ -16,7 +16,6 @@ import {
   StyleSheet,
   ActivityIndicator
 } from 'react-native';
-import VertViewPager from 'react-native-vertical-view-pager';
 
 /**
  * Default styles
@@ -466,6 +465,41 @@ export default class extends Component {
   }
 
   /**
+   * Scroll to index
+   * @param  {number} index page
+   * @param  {bool} animated
+   */
+  scrollTo = (index, animated = true) => {
+    if (this.internals.isScrolling || this.state.total < 2 || index === this.state.index) return
+    const state = this.state
+    const diff = this.state.index + (index - this.state.index)
+    let x = 0
+    let y = 0
+    if (state.dir === 'x') x = diff * state.width
+    if (state.dir === 'y') y = diff * state.height
+    if (Platform.OS !== 'ios' && this.props.horizontal) {
+      this.scrollView && this.scrollView[animated ? 'setPage' : 'setPageWithoutAnimation'](diff)
+    } else {
+      this.scrollView && this.scrollView.scrollTo({ x, y, animated })
+    }
+    // update scroll state
+    this.internals.isScrolling = true
+    this.setState({
+      autoplayEnd: false
+    })
+    // trigger onScrollEnd manually in android
+    if (!animated || Platform.OS !== 'ios') {
+      setImmediate(() => {
+        this.onScrollEnd({
+          nativeEvent: {
+            position: diff
+          }
+        })
+      })
+    }
+  }
+
+  /**
    * Scroll by index
    * @param  {number} index offset index
    * @param  {bool} animated
@@ -639,11 +673,12 @@ export default class extends Component {
   }
 
   renderScrollView = pages => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' || (Platform.OS === 'android' && this.props.horizontal === false) ) {
       return (
           <ScrollView ref={this.refScrollView}
                       {...this.props}
                       {...this.scrollViewPropOverrides()}
+                      horizontal={this.props.horizontal}
                       contentContainerStyle={[styles.wrapperIOS, this.props.style]}
                       contentOffset={this.state.offset}
                       onScrollBeginDrag={this.onScrollBegin}
@@ -655,17 +690,7 @@ export default class extends Component {
       )
     }
 
-    return this.props.horizontal === false?
-        <VertViewPager ref={this.refScrollView}
-                       {...this.props}
-                       initialPage={this.props.loop ? this.state.index + 1 : this.state.index}
-                       onPageSelected={this.onScrollEnd}
-                       onMomentumScrollEnd={this.onScrollEnd}
-                       key={pages.length}
-                       style={StyleSheet.flatten([styles.wrapperAndroid, this.props.style])}>
-          {pages}
-        </VertViewPager>:
-        <ViewPagerAndroid ref={this.refScrollView}
+    return <ViewPagerAndroid ref={this.refScrollView}
                           {...this.props}
                           initialPage={this.props.loop ? this.state.index + 1 : this.state.index}
                           onPageSelected={this.onScrollEnd}
