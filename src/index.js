@@ -392,7 +392,7 @@ export default class extends Component {
    */
   onScrollEndDrag = e => {
     const { contentOffset } = e.nativeEvent
-    const { horizontal, children } = this.props
+    const { horizontal, children,onScrollEndDrag } = this.props
     const { index } = this.state
     const { offset } = this.internals
     const previousOffset = horizontal ? offset.x : offset.y
@@ -402,6 +402,7 @@ export default class extends Component {
         (index === 0 || index === children.length - 1)) {
       this.internals.isScrolling = false
     }
+    onScrollEndDrag && onScrollEndDrag(e, this.fullState(), this);
   }
 
   /**
